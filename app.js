@@ -1,5 +1,7 @@
-//combinatin of winning array sequence on the board
-var winningCombos = [
+
+//This a global variable. This array contains contains sets of array with consistent length 
+//of 3 which shows the winning combination of the boxes index in the board
+var winCombo = [
   [0,1,2],
   [3,4,5],
   [6,7,8],
@@ -9,112 +11,127 @@ var winningCombos = [
   [1,4,7],
   [2,5,8],
 ]
-//Helper function
-//function to turn boxes in html into an array.
 
-var grid = function(){
-  return Array.from(document.getElementsByClassName('q'))
-} 
+//this is a helper function
+//this function return the array of boxes class div element. Lenght will be consistent to 9. 
+//It does not create array of the element value
+var board = function(){
+  return Array.from(document.querySelectorAll('.box'))
 
-//Helper function
-//function to change the element ID of ie q0 -> 0 by replacing q with an empty string. 
-//The purpose is to use the number / return value as the index number / location ID of the element 
-var qNumID = function(elem){
-  return Number.parseInt(elem.id.replace('q', ''));
 }
 
-//Helper function
-//Return an array of empty boxes
-var emptyBox = function(){
-  return grid().filter(function(elem){
+//this is a helper function
+//this function return array of empty boxes from the board
+//this is use to idenfity which boxes can next person/computer use
+var emptyBoxes = function(){
+  return board().filter(function(elem){
     return elem.innerText === ''
   })
 }
 
-//Helper function
-//function to check whether we have three array element with the same value and not empty
-var allSame = function(arr){
+//helper function
+//this function returns element ID that has been converted from string to number data type
+var boxIdNum = function(elem){
+  return Number(elem.id)
+}
+
+//helper function
+//returned a random ID number from empty boxes left 
+var computerChoice = function (){
+  //console.log(emptyBoxes()[Math.floor(Math.random() * emptyBoxes().length)])
+  return boxIdNum(emptyBoxes()[Math.floor(Math.random() * emptyBoxes().length)])
+}
+
+var win = function(arr){
   return arr.every(function(elem){
-    return elem.innerText === arr[0].innerText && elem.innerText !== ''
+    return elem.innerText === arr[0].innerText && elem.innerText !== ''  
   })
 }
 
 
-
-var opponentChoice = function(){
-  return qNumID(emptyBox()[Math.floor(Math.random() * emptyBox().length)])
-}
-
-var endGame = (winningSequence) => {
-  winningSequence.forEach(elem => elem.classList.add('winner'))
-  console.log('Winning')
-  disableListener()
-}
-
-//this function check for winning logic
-var checkForVictory = function(){
-  var victory = false
-
-  winningCombos.forEach(function(combo){
-    
-    var lgrid = grid()//array of boxes on the game board not array of the boxes value
-    console.log(lgrid)
-    var sequence = [lgrid[combo[0]], lgrid[combo[1]], lgrid[combo[2]]]
-
-    if(allSame(sequence)){
-      victory = true
-      endGame(sequence)
-    }
-    
-  })
-  return victory;
-}
-
-var opponentTurn = function(){
-  disableListener()
-  setTimeout(function(){
-    takeTurn(opponentChoice(), 'o')
-    if(!checkForVictory())
-      enableListener();
-  }, 1000)
-}
-
-var takeTurn = function(index, letter){
-  grid()[index].innerText = letter
-}
-
-var clickFn = function(event){
-  takeTurn(qNumID(event.target), 'x');
-  if(!checkForVictory())
-    opponentTurn();
+var finish = function (sequence){
+  return sequence.forEach(function(elem) {
+    console.log(sequence[0].innerText)
+    document.querySelector('.win').innerText = sequence[0].innerText + ' is the Winner!'
+    //document.querySelector('p').innerText = 'WINNING!'
+    disableListener()
+    return elem.classList.add('winner')
+  } )
   
 }
 
-//start event listener for click 
+
+var winningCond = function (){
+  var victory = false
+
+   winCombo.forEach(function(combo){  
+
+      var sequence = [board()[combo[0]], board()[combo[1]], board()[combo[2]]]
+
+      if (win(sequence)){
+        console.log (sequence)
+        victory = true
+        finish(sequence)
+      }
+
+   })
+
+  return victory
+}
+
+//function that ran dumb computer turn. 
+var opponentTurn = function(){
+  disableListener()
+  setTimeout(function(){
+    takeTurn(computerChoice(), 'O')
+    if (!winningCond()){ //check winning condition
+      enableListener()
+    }
+  }, 1000)
+}
+
+//on this function, a letter X or O is assigned to an element referencing parameter received. 
+var takeTurn = function (index, letter){
+  board()[index].innerText = letter
+  //console.log(typeof(index))
+}
+
+//function that describe what happen on click
+var clickFn = function(){
+  takeTurn(boxIdNum(event.target), 'X')
+  //check winning condition
+  if(!winningCond()){
+    opponentTurn();
+  }
+  //console.log(event.target)
+}
+
+//this function is to enable click event listener on the board
 var enableListener = function(){
-  grid().forEach(function(elem){
+  board().forEach(function(elem){
     elem.addEventListener('click', clickFn)
   })
 }
 
-//remove event listener
+//this function is to disable click event listener on the board
 var disableListener = function(){
-  grid().forEach(function(elem){
+  board().forEach(function(elem){
     elem.removeEventListener('click', clickFn)
   })
 }
 
+
+
+//initialize the game. This function runs at the start of the game and also use to reset game
+var init = function(){
+
+
+}
+
+//init()
 enableListener()
 
-/*
-
-Things to do:
-1. Do documentation
-2. Improve user interface
-3. Do more game build practice
-4. Update learning journal
-
-Things need to improve
-1. With this logic, AI entry can be overriden with human player. 
-   Need to built control to handel this scenario
-2. Need a reset button return to start where board is value is empty*/
+//need to build control for box that have value to not able to be selected
+//need to setup reset button for reinitialization
+//need to setup control for draw scenario
+//be able to select gif animation as winning message 
