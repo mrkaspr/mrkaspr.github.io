@@ -1,3 +1,3 @@
 # mrkaspr.github.io
 
-test
+click this to play game - mrkaspr.github.io
